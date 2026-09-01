@@ -9,15 +9,21 @@ import { API_URL } from '../api-url.js';
  * de l'URL (/quizzes/:id).
  */
 export async function loader({ params }) {
-  const response = await fetch(`${API_URL}/api/quizzes/${params.id}`);
+  const response = await fetch(`http://localhost:3000/api/quizzes/${params.id}`);
   if (!response.ok) {
-    throw new Response('Questionnaire introuvable.', { status: 404 });
+    throw new Error(`Erreur lors du chargement du questionnaire : ${response.status}`);
   }
   return response.json();
 }
 
 export default function QuizDetails() {
   const quiz = useLoaderData();
+
+  useEffect(() => {
+    fetchQuiz(id).then(setQuiz).catch(() => {});
+  }, [id]);
+
+  if (!quiz) return <main className="screen">Chargement…</main>;
 
   return (
     <main className="screen">
