@@ -14,7 +14,10 @@ import { db } from './db.js';
  */
 export function createGame(quizId, code, createdAt) {
   const result = db
-    .prepare('INSERT INTO game (quiz_id, code, created_at) VALUES (?, ?, ?)')
+    .prepare(
+      `INSERT INTO game (quiz_id, code, created_at)
+       VALUES (?, ?, ?)`,
+    )
     .run(quizId, code, createdAt);
   return result.lastInsertRowid;
 }
@@ -26,7 +29,10 @@ export function createGame(quizId, code, createdAt) {
  */
 export function addPlayer(gameId, nickname) {
   const result = db
-    .prepare('INSERT INTO player (game_id, nickname) VALUES (?, ?)')
+    .prepare(
+      `INSERT INTO player (game_id, nickname)
+       VALUES (?, ?)`,
+    )
     .run(gameId, nickname);
   return result.lastInsertRowid;
 }

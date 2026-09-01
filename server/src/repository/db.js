@@ -23,13 +23,31 @@ db.exec('PRAGMA foreign_keys = ON');
 
 /** Crée les tables (schema.sql), puis les remplit (seed.sql) si la base est vide. */
 export function initializeDatabase() {
-  const schema = readFileSync(fileURLToPath(new URL('schema.sql', dataDir)), 'utf8');
-  db.exec(schema);
-
-  const { n } = db.prepare('SELECT COUNT(*) AS n FROM quiz').get();
-  if (n === 0) {
-    const seed = readFileSync(fileURLToPath(new URL('seed.sql', dataDir)), 'utf8');
-    db.exec(seed);
+  try {
+    // 1. Lire et exécuter schema.sql
+    const schemaPath = fileURLToPath(new URL('schema.sql', dataDir));
+    const schema = readFileSync(schemaPath, 'utf8');
+    db.exec(schema);
+    
+    // 2. Vérifier si la base est vide (chercher une table quelconque)
+    const tables = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+    ).all();
+    
+    const isEmpty = tables.length === 0;
+    
+    
+    if (isEmpty) {
+      const seedPath = fileURLToPath(new URL('seed.sql', dataDir));
+      const seed = readFileSync(seedPath, 'utf8');
+      db.exec(seed);
+      console.log('Base initialisée avec les données de seed.sql');
+    } else {
+      console.log(`Base initialisée : ${tables.length} table(s) présente(s)`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de l\'initialisation de la base :', error.message);
+    throw error;
   }
 }
 
