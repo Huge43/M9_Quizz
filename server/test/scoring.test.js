@@ -44,8 +44,34 @@ test('bonne réponse après l’échéance = 0', () => {
 //
 // Remplacez chaque test.todo par un vrai test.
 
-test.todo('réponse exactement à l’échéance = 5 (acceptée, bonus rapidité 0)');
-test.todo('mauvaise réponse, même première et instantanée = 0');
-test.todo('première bonne réponse hors délai = 0 (pas de bonus)');
-test.todo('le bonus de rapidité ne dépasse jamais 3');
-test.todo('le résultat est toujours un entier de 0 à 10');
+test(`réponse exactement à l'échéance = 5`, () => {
+  assert.equal(score({ responseTimeMs: 20000 }), 5);
+});
+
+test('mauvaise réponse, même première et instantanée = 0', () => {
+  assert.equal(score({ isCorrect: false, isFirstCorrectAnswer: true }), 0);
+});
+
+test('première bonne réponse hors délai = 0 (pas de bonus)', () => {
+  assert.equal(score({ isFirstCorrectAnswer: true, responseTimeMs: 25000 }), 0);
+});
+
+test('le bonus de rapidité ne dépasse jamais 3', () => {
+   const bonusMax = score({ responseTimeMs: 0 }) - 5;
+  assert.equal(bonusMax, 3); 
+});
+
+test('le résultat est toujours un entier de 0 à 10', () => {
+  const cases = [
+     {isCorrect: false},
+    {responseTimeMs: 25000},
+    {responseTimeMs: 5000},
+    {responseTimeMs: 10000, isFirstCorrectAnswer: true},
+    {responseTimeMs: 0, isFirstCorrectAnswer: true},
+  ];
+  cases.forEach((overrides) => {
+    const result =score(overrides);
+    assert.ok(Number.isInteger(result), `doit être un entier: ${result}`);
+    assert.ok(result >= 0 && result <= 10, `doit être entre 0 et 10: ${result}`);
+  });
+});

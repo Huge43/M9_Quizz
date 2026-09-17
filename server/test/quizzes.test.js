@@ -31,10 +31,55 @@ test('un titre valide crée le questionnaire (201)', async () => {
 
 // ── Jalon 2 ───────────────────────────────────────────────────────────────
 
-test.todo('une question sans bonne réponse est refusée (400)');
-test.todo('une question avec deux bonnes réponses est refusée (400)');
-test.todo('une question valide est ajoutée et apparaît dans GET /api/quizzes/:id');
+test('une question sans bonne réponse est refusée (400)', async () => {
+  const { data: quiz } = await api.request('POST', '/api/quizzes', { title: 'test' });
+  const { status, data } = await api.request('POST', `/api/quizzes/${quiz.id}/questions`, {
+    text: 'Quelle est la capitale de la France ?',
+    durationSeconds: 20,
+    choices: [
+      { text: 'Lyon', isCorrect: false },
+      { text: 'Marseille', isCorrect: false },
+    ]
+  });
+  assert.equal(status, 400);
+  assert.equal(typeof data.error, 'string');
+});
 
+test('une question avec deux bonnes réponses est refusée (400)', async () => {
+  const { data: quiz } = await api.request('POST', '/api/quizzes', { title: 'test2' });
+  const { status, data } = await api.request('POST', `/api/quizzes/${quiz.id}/questions`, {
+    text: 'Quelle est la capitale de la France ?',
+    durationSeconds: 20,
+    choices: [
+      { text: 'Paris', isCorrect: true },
+      { text: 'Lyon', isCorrect: true },
+    ]
+  });
+  assert.equal(status, 400);
+  assert.equal(typeof data.error, 'string');
+});
+
+test('une question valide est ajoutée et apparaît dans GET /api/quizzes/:id', async () => {
+  const { data: quiz } = await api.request('POST', '/api/quizzes', { title: 'test3' });
+  const response = await api.request('POST', `/api/quizzes/${quiz.id}/questions`, {
+    text: 'Quelle est la capitale de la France ?',
+    durationSeconds: 20,
+    choices: [
+      { text: 'Paris', isCorrect: true },
+      { text: 'Lyon', isCorrect: false },
+    ]
+  });
+  
+  console.log('Status:', response.status, 'Data:', response.data);
+  assert.equal(response.status, 201);
+  
+});
 // ── Jalon 3 : d'abord le test qui échoue, ensuite la correction ───────────
 
-test.todo('une partie sur un questionnaire sans question est refusée (400)');
+test('une partie sur un questionnaire sans question est refusée (400)', async () => {
+  const { data: quiz } = await api.request('POST', '/api/quizzes', { title: 'vide' });
+  const {status, data } = await api.request('POST', `/api/games`, { quizId: quiz.id });
+
+  assert.equal(status, 400);
+  assert.equal(typeof data.error, 'string');
+});
